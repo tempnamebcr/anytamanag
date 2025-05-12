@@ -5,6 +5,7 @@ import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
 import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
 
 export default function UsersIndex() {
     const { project } = usePage().props;
@@ -15,7 +16,12 @@ export default function UsersIndex() {
     const submit = (e) => {
         e.preventDefault();
         patch(route("projects.update", { project: project.id }), {
-            onFinish: () => toast.success("Editat cu success!"),
+            onSuccess: () => {
+                toast.success("Editat cu succes!");
+            },
+            onError: (errors) => {
+                toast.error("A apărut o eroare. Verifică datele introduse.");
+            },
         });
     };
 
@@ -62,7 +68,26 @@ export default function UsersIndex() {
                                     />
                                 </div>
 
-                                <div className="mt-4 flex items-center justify-end">
+                                <div className="mt-4 flex w-full justify-between">
+                                    <SecondaryButton
+                                        onClick={() => {
+                                            if (
+                                                confirm(
+                                                    "Ești sigur că vrei să ștergi acest proiect?"
+                                                )
+                                            ) {
+                                                router.delete(
+                                                    route(
+                                                        `projects.destroy`,
+                                                        project.id
+                                                    )
+                                                );
+                                            }
+                                        }}
+                                        className="text-red-500 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none "
+                                    >
+                                        Sterge Proiect
+                                    </SecondaryButton>
                                     <PrimaryButton
                                         className="ms-4"
                                         disabled={processing}

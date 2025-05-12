@@ -1,17 +1,26 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SearchableSelect from '@/Components/SearchableSelect';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function Register() {
+    const { roles } = usePage().props;
+
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
+        role: '',
         password: '',
         password_confirmation: '',
     });
+
+    const rolesArray = roles.reduce((acc, role) => {
+        acc.push({value: role.name, label:role.name});
+        return acc;
+      }, []);
 
     const submit = (e) => {
         e.preventDefault();
@@ -19,6 +28,10 @@ export default function Register() {
         post(route('register'), {
             onFinish: () => reset('password', 'password_confirmation'),
         });
+    };
+
+    const selectParent = (value) => {
+        setData("role", value);
     };
 
     return (
@@ -43,22 +56,29 @@ export default function Register() {
                     <InputError message={errors.name} className="mt-2" />
                 </div>
 
-                {/* <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+                <div className="mt-4">
+                    <InputLabel htmlFor="role" value="Rol" />
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
+                    <SearchableSelect
+                        id="role"
+                        name="role"
+                        value={data.role}
                         className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
+                        autoComplete="role"
+                        isFocused={true}
+                        options={rolesArray ?? []}
+                        selectParent={(id) => selectParent(id)}
+                        onChange={(e) => {
+                            setData(
+                                "role",
+                                e.target.value
+                            );
+                        }}
                         required
                     />
 
                     <InputError message={errors.email} className="mt-2" />
-                </div> */}
+                </div>
 
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Parola" />

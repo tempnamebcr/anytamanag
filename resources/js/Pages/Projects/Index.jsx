@@ -1,15 +1,18 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import DataTable from "react-data-table-component";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import PlusIcon from "../../../assets/PlusIcon";
 import usePagination from "@/Hooks/usePagination";
-import projectsColumns from "@/Helpers/Columns/Projects"
+import getProjectsColumns from "@/Helpers/Columns/Projects";
 
 export default function ProjectsIndex() {
     const { projects } = usePage().props;
+    const permissions = usePage().props.auth.permissions;
+    const isFirstRun = useRef(true);
+    const projectsColumns = getProjectsColumns(permissions);
     const {
         tempSearch,
         search,
@@ -25,6 +28,10 @@ export default function ProjectsIndex() {
     } = usePagination(projects);
 
     useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
         router.get(
             route("projects.index"),
             { search, orderBy, orderDirection, page, perPage },
@@ -49,17 +56,22 @@ export default function ProjectsIndex() {
                 <div className="mx-auto h-full max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden h-full bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <div className="flex mb-3">
-                                <PrimaryButton
-                                    className="mr-3"
-                                    onClick={() =>
-                                        router.get(route("projects.create"))
-                                    }
-                                >
-                                    <PlusIcon fill="white" className="mr-2" />
-                                    Adaugă
-                                </PrimaryButton>
-                            </div>
+                            {permissions.includes("adaugare-proiecte") && (
+                                <div className="flex mb-3">
+                                    <PrimaryButton
+                                        className="mr-3"
+                                        onClick={() =>
+                                            router.get(route("projects.create"))
+                                        }
+                                    >
+                                        <PlusIcon
+                                            fill="white"
+                                            className="mr-2"
+                                        />
+                                        Adaugă
+                                    </PrimaryButton>
+                                </div>
+                            )}
                             <div className="flex mb-3">
                                 <TextInput
                                     id="search"
@@ -71,9 +83,7 @@ export default function ProjectsIndex() {
                                     onChange={(e) =>
                                         setTempSearch(e.target.value)
                                     }
-                                    onBlur={(e) =>
-                                        setSearch(e.target.value)
-                                    }
+                                    onBlur={(e) => setSearch(e.target.value)}
                                     onKeyDown={(e) =>
                                         e.key === "Enter" &&
                                         setSearch(tempSearch)

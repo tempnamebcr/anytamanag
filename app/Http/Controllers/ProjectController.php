@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\StoreRequest;
 use App\Http\Requests\Project\UpdateRequest;
 use App\Services\ProjectService;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class ProjectController extends Controller
@@ -82,7 +83,8 @@ class ProjectController extends Controller
     {
         if (auth()->user()->can('stergere-proiecte')) {
             $this->projectService->deleteProject($id);
-            return back()->with('message', 'Proiect sters cu success');
+            return Redirect::route('projects.index')
+                ->with('message', 'Proiect șters cu succes!');
         }
     }
 }

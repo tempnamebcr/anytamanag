@@ -18,19 +18,21 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [UserController::class, 'dashboard'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('users', UserController::class);
+    Route::post('users/change-role/{id}', [UserController::class, 'changeRole'])->name('users.changeRole');
     Route::resource('projects', ProjectController::class);
     Route::resource('orders', OrderController::class);
     Route::post('orders/change-status/{id}', [OrderController::class, 'changeStatus'])->name('orders.changeStatus');
     Route::resource('permissions', PermissionController::class);
+    Route::post('permissions/updateRole', [PermissionController::class, 'updateRole'])->name('permissions.updateRole');
 });
 
 require __DIR__.'/auth.php';

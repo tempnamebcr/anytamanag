@@ -21,6 +21,7 @@ export default forwardRef(function SearchableSelectInput(
     }, [isFocused]);
 
     useEffect(() => {
+        if(!options) return;
         setFilteredOptions(
             options.filter((option) =>
                 option.label.toLowerCase().includes(searchTerm.toLowerCase())
@@ -29,16 +30,14 @@ export default forwardRef(function SearchableSelectInput(
     }, [searchTerm, options]);
 
     useEffect(() => {
-        options.forEach((option) => {
-            if (option.selected) {
-                setSearchTerm(option.label);
-                if (selectRef.current) {
-                    selectRef.current.value = option.value;
-                }
-                setIsOpen(false);
+        const selectedOption = options.find(option => option.value == props.value);
+        if (selectedOption) {
+            setSearchTerm(selectedOption.label);
+            if (selectRef.current) {
+                selectRef.current.value = selectedOption.value;
             }
-        });
-    }, []);
+        }
+    }, [props.value, options]);
 
     return (
         <div className={"relative w-full " + className}>

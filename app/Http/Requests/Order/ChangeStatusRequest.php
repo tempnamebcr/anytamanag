@@ -23,7 +23,7 @@ class ChangeStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::in(['livrata', 'nepreluata', 'preluata'])],
+            'status' => ['required', Rule::in(['livrata', 'nepreluata', 'preluata', 'asteptare', 'blocata', 'partial'])],
         ];
     }
 }

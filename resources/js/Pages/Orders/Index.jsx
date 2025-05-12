@@ -1,17 +1,20 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import DataTable from "react-data-table-component";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import PlusIcon from "../../../assets/PlusIcon";
 import SearchableSelect from "@/Components/SearchableSelect";
-import { ordersColumns, ExpandedOrder } from "@/Helpers/Columns/Orders";
+import { getOrdersColumns, ExpandedOrder } from "@/Helpers/Columns/Orders";
 import usePagination from "@/Hooks/usePagination";
-import {orderOptions} from "@/Helpers/helper";
+import { orderOptions } from "@/Helpers/helper";
 
 export default function OrdersIndex() {
     const { orders, projects } = usePage().props;
+    const permissions = usePage().props.auth.permissions;
+    const ordersColumns = getOrdersColumns(permissions);
+    const isFirstRun = useRef(true);
     const {
         tempSearch,
         search,
@@ -35,7 +38,7 @@ export default function OrdersIndex() {
         setStatus((prevSearch) =>
             prevSearch.includes(value)
                 ? prevSearch.filter((item) => item !== value)
-                : [...prevSearch, value]
+                : [value]
         );
     };
 
@@ -46,6 +49,10 @@ export default function OrdersIndex() {
     }));
 
     useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
         router.get(
             route("orders.index"),
             {
@@ -81,21 +88,26 @@ export default function OrdersIndex() {
                 <div className="mx-auto h-full max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden h-full bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <div className="flex mb-3">
-                                <PrimaryButton
-                                    className="mr-3"
-                                    onClick={() =>
-                                        router.get(
-                                            route("orders.create", {
-                                                projectId: projectId,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <PlusIcon fill="white" className="mr-2" />
-                                    Adaugă
-                                </PrimaryButton>
-                            </div>
+                            {permissions.includes("adaugare-comenzi") && (
+                                <div className="flex mb-3">
+                                    <PrimaryButton
+                                        className="mr-3"
+                                        onClick={() =>
+                                            router.get(
+                                                route("orders.create", {
+                                                    projectId: projectId,
+                                                })
+                                            )
+                                        }
+                                    >
+                                        <PlusIcon
+                                            fill="white"
+                                            className="mr-2"
+                                        />
+                                        Adaugă
+                                    </PrimaryButton>
+                                </div>
+                            )}
                             <div className="flex flex-col sm:flex-row justify-between mb-3 w-full">
                                 <SearchableSelect
                                     id="projects"
@@ -143,7 +155,7 @@ export default function OrdersIndex() {
                                         onClick={() =>
                                             toggleStatus(option.value)
                                         }
-                                        className={`px-4 py-2 mr-1 sm:mr-3 rounded-md text-white transition ${
+                                        className={`px-4 py-2 mt-2 mr-1 sm:mr-3 rounded-md text-white transition ${
                                             status.includes(option.value)
                                                 ? "bg-blue-500"
                                                 : "bg-gray-400"

@@ -4,6 +4,7 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import PlusIcon from "../../../assets/PlusIcon";
 import { useEffect, useState } from "react";
 import SearchableSelect from "@/Components/SearchableSelect";
+import toast from "react-hot-toast";
 
 const pagesOptions = [
     { label: "Utilizatori", value: "utilizatori" },
@@ -14,10 +15,12 @@ const pagesOptions = [
 
 export default function UsersIndex() {
     const { roles, permissions } = usePage().props;
+    const userPermissions = usePage().props.auth.permissions;
     const [selectedPage, setSelectedPage] = useState("");
     const [selectedRole, setSelectedRole] = useState("");
     const [rolePermissions, setRolePermissions] = useState({});
-    const [filteredPagesOptions, setFilteredPagesOptions] = useState(pagesOptions);
+    const [filteredPagesOptions, setFilteredPagesOptions] =
+        useState(pagesOptions);
 
     useEffect(() => {
         let filteredOptions;
@@ -31,9 +34,20 @@ export default function UsersIndex() {
         setFilteredPagesOptions(filteredOptions);
     }, [selectedPage]);
 
+    const syncRoles = async () => {
+        if (!selectedRole) return;
+        const selectedPermissions = Object.keys(rolePermissions).filter(
+            (key) => rolePermissions[key]
+        );
+        router.post(route('permissions.updateRole'), {
+            roleName: selectedRole,
+            permNames: selectedPermissions,
+        });
+        toast.success("Permisiuni actualizate cu success!");
+    };
 
     useEffect(() => {
-        if (!selectedRole){
+        if (!selectedRole) {
             setRolePermissions({});
             return;
         }
@@ -41,11 +55,13 @@ export default function UsersIndex() {
         const role = roles.find((r) => r.name === selectedRole);
         if (!role) return;
 
-        const updatedPermissions = role.permissions.reduce((acc, permission) => {
-            acc[permission.name] = true;
-            return acc;
-        }, {});
-        console.log(updatedPermissions)
+        const updatedPermissions = role.permissions.reduce(
+            (acc, permission) => {
+                acc[permission.name] = true;
+                return acc;
+            },
+            {}
+        );
         setRolePermissions(updatedPermissions);
     }, [selectedRole]);
 
@@ -79,17 +95,26 @@ export default function UsersIndex() {
                 <div className="mx-auto h-full max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden h-full bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 min-h-[800px]">
-                            <div className="flex mb-3">
-                                <PrimaryButton
-                                    className="mr-3"
-                                    onClick={() =>
-                                        router.get(route("permissions.create"))
-                                    }
-                                >
-                                    <PlusIcon fill="white" className="mr-2" />
-                                    Adaugă Rol
-                                </PrimaryButton>
-                            </div>
+                            {userPermissions.includes(
+                                "adaugare-permisiuni"
+                            ) && (
+                                <div className="flex mb-3">
+                                    <PrimaryButton
+                                        className="mr-3"
+                                        onClick={() =>
+                                            router.get(
+                                                route("permissions.create")
+                                            )
+                                        }
+                                    >
+                                        <PlusIcon
+                                            fill="white"
+                                            className="mr-2"
+                                        />
+                                        Adaugă Rol
+                                    </PrimaryButton>
+                                </div>
+                            )}
                             <div className="flex mb-3">
                                 <p className="my-auto mr-3 text-lg">
                                     Selecteaza Rolul
@@ -150,8 +175,18 @@ export default function UsersIndex() {
                                                             >
                                                                 <input
                                                                     type="checkbox"
+                                                                    disabled={
+                                                                        !selectedRole ||
+                                                                        !userPermissions.includes(
+                                                                            "adaugare-permisiuni"
+                                                                        )
+                                                                    }
                                                                     checked={
-                                                                        rolePermissions[perm.name] || false
+                                                                        rolePermissions[
+                                                                            perm
+                                                                                .name
+                                                                        ] ||
+                                                                        false
                                                                     }
                                                                     onChange={() =>
                                                                         togglePermission(
@@ -176,6 +211,19 @@ export default function UsersIndex() {
                                     );
                                 })}
                             </div>
+                            {userPermissions.includes(
+                                "adaugare-permisiuni"
+                            ) && (
+                                <div className="flex w-full mt-6">
+                                    <PrimaryButton
+                                        className="mr-3 ml-auto py-3"
+                                        disabled={!selectedRole}
+                                        onClick={() => syncRoles()}
+                                    >
+                                        Sincronozează Permisiuni
+                                    </PrimaryButton>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

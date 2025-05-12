@@ -9,6 +9,7 @@ use App\Http\Requests\Order\UpdateRequest;
 use App\Models\Order;
 use App\Models\Project;
 use App\Services\OrderService;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -55,6 +56,7 @@ class OrderController extends Controller
         $order = $this->orderService->find($id);
         return Inertia::render('Orders/Edit', [
             'order' => $order,
+            'projects' => Project::all()
         ]);
     }
 
@@ -85,7 +87,8 @@ class OrderController extends Controller
     {
         if (auth()->user()->can('stergere-comenzi')) {
             $this->orderService->deleteOrder($id);
-            return back()->with('message', 'Comanda stearsa cu success');
+            return Redirect::route('projects.index')
+                ->with('message', 'Proiect șters cu succes!');
         }
     }
 }

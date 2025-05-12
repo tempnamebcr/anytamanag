@@ -8,7 +8,7 @@ export default function usePagination({ variable }) {
         new URLSearchParams(window.location.search).get("search") || ""
     );
     const [orderBy, setOrderBy] = useState("id");
-    const [orderDirection, setOrderDirection] = useState("asc");
+    const [orderDirection, setOrderDirection] = useState("desc");
     const [page, setPage] = useState(variable?.current_page);
     const [perPage, setPerPage] = useState(variable?.per_page);
     const handleSort = (column, sortDirection) => {

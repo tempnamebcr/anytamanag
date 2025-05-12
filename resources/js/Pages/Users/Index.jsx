@@ -1,15 +1,23 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import DataTable from "react-data-table-component";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
 import PlusIcon from "../../../assets/PlusIcon";
-import usersColumns from "@/Helpers/Columns/Users"
+import getUsersColumns from "@/Helpers/Columns/Users";
 import usePagination from "@/Hooks/usePagination";
 
 export default function UsersIndex() {
-    const { users } = usePage().props;
+    const { users, roles } = usePage().props;
+    const permissions = usePage().props.auth.permissions;
+    const rolesArray = roles.reduce((acc, role) => {
+        acc.push({value: role.name, label:role.name});
+        return acc;
+    }, []);
+    const usersColumns = getUsersColumns(permissions, rolesArray);
+    const isFirstRun = useRef(true);
+
     const {
         tempSearch,
         search,
@@ -25,6 +33,10 @@ export default function UsersIndex() {
     } = usePagination(users);
 
     useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
         router.get(
             route("users.index"),
             { search, orderBy, orderDirection, page, perPage },
@@ -49,17 +61,22 @@ export default function UsersIndex() {
                 <div className="mx-auto h-full max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden h-full bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <div className="flex w-full mb-3">
-                                <PrimaryButton
-                                    className="mr-3"
-                                    onClick={() =>
-                                        router.get(route("register"))
-                                    }
-                                >
-                                    <PlusIcon fill="white" className="mr-2" />
-                                    Adaugă
-                                </PrimaryButton>
-                            </div>
+                            {permissions.includes("adaugare-utilizatori") && (
+                                <div className="flex w-full mb-3">
+                                    <PrimaryButton
+                                        className="mr-3"
+                                        onClick={() =>
+                                            router.get(route("register"))
+                                        }
+                                    >
+                                        <PlusIcon
+                                            fill="white"
+                                            className="mr-2"
+                                        />
+                                        Adaugă
+                                    </PrimaryButton>
+                                </div>
+                            )}
                             <div className="flex mb-3">
                                 <TextInput
                                     id="search"
@@ -71,9 +88,7 @@ export default function UsersIndex() {
                                     onChange={(e) =>
                                         setTempSearch(e.target.value)
                                     }
-                                    onBlur={(e) =>
-                                        setSearch(e.target.value)
-                                    }
+                                    onBlur={(e) => setSearch(e.target.value)}
                                     onKeyDown={(e) =>
                                         e.key === "Enter" &&
                                         setSearch(tempSearch)

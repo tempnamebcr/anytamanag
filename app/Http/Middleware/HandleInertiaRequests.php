@@ -33,6 +33,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'permissions' => $request->user()?->roles?->flatMap?->permissions?->pluck('name')->unique(),
             ],
         ];
     }

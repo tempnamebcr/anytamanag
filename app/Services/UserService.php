@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Repositories\IUserRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Spatie\Permission\Models\Role;
 
 class UserService
 {
@@ -36,8 +37,8 @@ class UserService
             unset($data['password']);
             $this->userRepository->updatePassword($user, $pass);
         }
-
         $this->userRepository->update($data, $user->id);
+        $this->updateUserRole($user->id, $data['role']);
         return $user->refresh();
     }
 
@@ -46,9 +47,8 @@ class UserService
         $user = User::findOrFail($userId);
         $role = Role::findByName($newRole);
 
-        if ($role) {
-            $user->syncRoles([$role]);
-        }
+        if (!$role) return;
+        $user->syncRoles([$role]);
     }
 
     public function deleteUser(int $userId): bool

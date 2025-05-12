@@ -9,13 +9,13 @@ import Select from "@/Components/Select";
 import {orderOptions} from "@/Helpers/helper";
 import Textarea from "@/Components/Textarea";
 import SearchableSelect from "@/Components/SearchableSelect";
-import {useEffect} from "react";
+import { useEffect } from "react";
 
 export default function OrdersCreate() {
     const { projects } = usePage().props;
     const user = usePage().props.auth.user;
     const selectedProjectId = Number(new URLSearchParams(window.location.search).get("projectId")) ?? null;
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         title: "",
         description: "",
         status: "nepreluata",
@@ -41,7 +41,7 @@ export default function OrdersCreate() {
 
     const submit = (e) => {
         e.preventDefault();
-
+        if(Object.keys(errors).length != 0) return;
         post(route("orders.store"), {
             onFinish: () => toast.success("Adaugata cu success!"),
         });
@@ -163,7 +163,7 @@ export default function OrdersCreate() {
                                     />
 
                                     <InputError
-                                        message={errors.title}
+                                        message={errors.description}
                                         className="mt-2"
                                     />
                                 </div>

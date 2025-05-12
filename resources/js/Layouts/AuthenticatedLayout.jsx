@@ -4,11 +4,12 @@ import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { usePage } from "@inertiajs/react";
 import { useState } from "react";
-import {Toaster} from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
+import usersIcon from "../../assets/svg/users.svg";
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-
+    const permissions = usePage().props.auth.permissions;
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
@@ -20,7 +21,9 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex">
-                                <ApplicationLogo className="h-1/2 my-auto" />
+                                <NavLink href={route("dashboard")}>
+                                    <ApplicationLogo className="h-1/2 my-auto" />
+                                </NavLink>
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -30,30 +33,50 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
-                                <NavLink
-                                    href={route("orders.index")}
-                                    active={route().current("orders.index")}
-                                >
-                                    Comenzi
-                                </NavLink>
-                                <NavLink
-                                    href={route("projects.index")}
-                                    active={route().current("projects.index")}
-                                >
-                                    Proiecte
-                                </NavLink>
-                                <NavLink
-                                    href={route("users.index")}
-                                    active={route().current("users.index")}
-                                >
-                                    Angajati
-                                </NavLink>
-                                <NavLink
-                                    href={route("permissions.index")}
-                                    active={route().current("permissions.index")}
-                                >
-                                    Roluri
-                                </NavLink>
+                                {permissions.includes(
+                                    "vizualizare-comenzi"
+                                ) && (
+                                    <NavLink
+                                        href={route("orders.index")}
+                                        active={route().current("orders.index")}
+                                    >
+                                        Comenzi
+                                    </NavLink>
+                                )}
+                                {permissions.includes(
+                                    "vizualizare-proiecte"
+                                ) && (
+                                    <NavLink
+                                        href={route("projects.index")}
+                                        active={route().current(
+                                            "projects.index"
+                                        )}
+                                    >
+                                        Proiecte
+                                    </NavLink>
+                                )}
+                                {permissions.includes(
+                                    "vizualizare-utilizatori"
+                                ) && (
+                                    <NavLink
+                                        href={route("users.index")}
+                                        active={route().current("users.index")}
+                                    >
+                                        Angajati
+                                    </NavLink>
+                                )}
+                                {permissions.includes(
+                                    "vizualizare-permisiuni"
+                                ) && (
+                                    <NavLink
+                                        href={route("permissions.index")}
+                                        active={route().current(
+                                            "permissions.index"
+                                        )}
+                                    >
+                                        Roluri
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -85,17 +108,20 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route("profile.edit")}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
+                                        {user?.roles?.[0]?.name == "admin" && (
+                                            <Dropdown.Link
+                                                href={route("register")}
+                                                as="button"
+                                            >
+                                                Inregistrare cont nou
+                                            </Dropdown.Link>
+                                        )}
                                         <Dropdown.Link
                                             href={route("logout")}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Delogare
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -158,12 +184,49 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+                        {permissions.includes("vizualizare-permisiuni") && (
+                            <ResponsiveNavLink
+                                href={route("permissions.index")}
+                                active={route().current("permissions.index")}
+                            >
+                                Permisiuni
+                            </ResponsiveNavLink>
+                        )}
+                        {permissions.includes("vizualizare-proiecte") && (
+                            <ResponsiveNavLink
+                                href={route("projects.index")}
+                                active={route().current("projects.index")}
+                            >
+                                Proiecte
+                            </ResponsiveNavLink>
+                        )}
+                        {permissions.includes("vizualizare-utilizatori") && (
+                            <ResponsiveNavLink
+                                href={route("users.index")}
+                                active={route().current("users.index")}
+                            >
+                                Utilizatori
+                            </ResponsiveNavLink>
+                        )}
+                        {permissions.includes("vizualizare-comenzi") && (
+                            <ResponsiveNavLink
+                                href={route("orders.index")}
+                                active={route().current("orders.index")}
+                            >
+                                Comenzi
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
+                            <div className="text-base font-medium text-gray-800 flex">
+                                <img
+                                    src={usersIcon}
+                                    alt="Users"
+                                    className="w-6 h-6 mr-4"
+                                />
+                                <p>{user.name}</p>
                             </div>
                             <div className="text-sm font-medium text-gray-500">
                                 {user.email}
@@ -171,15 +234,17 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route("profile.edit")}>
-                                Profile
-                            </ResponsiveNavLink>
+                            {user?.roles?.[0]?.name == "admin" && (
+                                <ResponsiveNavLink href={route("register")}>
+                                    Inregistrare cont nou
+                                </ResponsiveNavLink>
+                            )}
                             <ResponsiveNavLink
                                 method="post"
                                 href={route("logout")}
                                 as="button"
                             >
-                                Log Out
+                                Delogare
                             </ResponsiveNavLink>
                         </div>
                     </div>

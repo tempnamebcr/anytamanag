@@ -26,9 +26,9 @@ class PermissionService
         $role = Role::findByName($roleName);
         $role->revokePermissionTo($permName);
     }
-    public function syncPermissions(string $roleName, array $permIds){
+    public function syncPermissions(string $roleName, array $permNames){
         $role = Role::findByName($roleName);
-        $role->syncPermissions($permIds);
+        $role->syncPermissions($permNames);
     }
     public function assignRole(Permission $permission, Role $role){
         $permission->assignRole($role);

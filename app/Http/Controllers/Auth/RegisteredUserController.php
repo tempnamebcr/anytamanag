@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -20,7 +21,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', ['roles' => Role::all()]);
     }
 
     /**
@@ -32,6 +33,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'role' => 'required',
             // 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -43,9 +45,17 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        $role = Role::where('name', $request->role)->first();
+
+        if ($role) {
+            $user->syncRoles([$role->name]);
+        } else {
+            throw new \Exception("Rolul nu exista");
+        }
+
         // event(new Registered($user));
 
-        Auth::login($user);
+        // Auth::login($user);
 
         return redirect(route('dashboard', absolute: false));
     }

@@ -1,24 +1,36 @@
-import { Head, useForm, usePage } from "@inertiajs/react";
+import { Head, router, useForm, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import toast from "react-hot-toast";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
 import PrimaryButton from "@/Components/PrimaryButton";
+import Select from "@/Components/Select";
 
 export default function UsersIndex() {
-    const { user } = usePage().props;
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { user, roles } = usePage().props;
+    const { data, setData, patch, processing, errors } = useForm({
         name: user.name,
         password: "",
+        role: user.roles[0].name,
         password_confirmation: "",
     });
+
+    const rolesArray = roles.reduce((acc, role) => {
+        acc.push({ value: role.name, label: role.name });
+        return acc;
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
 
-        post(route("register"), {
-            onFinish: () => toast.success("Editat cu success!"),
+        patch(route("users.update", { user: user.id }), {
+            onSuccess: () => {
+                toast.success("Editat cu succes!");
+            },
+            onError: (errors) => {
+                toast.error("A apărut o eroare. Verifică datele introduse.");
+            },
         });
     };
 
@@ -35,6 +47,12 @@ export default function UsersIndex() {
             <div className="py-12 h-full">
                 <div className="mx-auto h-full max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden h-full bg-white shadow-sm sm:rounded-lg">
+                        <PrimaryButton
+                            className="mt-6 ml-6"
+                            onClick={() => router.get(route("users.index"))}
+                        >
+                            Inapoi
+                        </PrimaryButton>
                         <div className="p-6 text-gray-900">
                             <form onSubmit={submit}>
                                 <div>
@@ -49,6 +67,29 @@ export default function UsersIndex() {
                                         isFocused={true}
                                         onChange={(e) =>
                                             setData("name", e.target.value)
+                                        }
+                                        required
+                                    />
+
+                                    <InputError
+                                        message={errors.name}
+                                        className="mt-2"
+                                    />
+                                </div>
+
+                                <div>
+                                    <InputLabel htmlFor="role" value="Rol" />
+
+                                    <Select
+                                        id="role"
+                                        name="role"
+                                        options={rolesArray}
+                                        value={data.role}
+                                        className="mt-1 block w-full"
+                                        autoComplete="role"
+                                        isFocused={true}
+                                        onChange={(e) =>
+                                            setData("role", e.target.value)
                                         }
                                         required
                                     />
